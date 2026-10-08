@@ -34,3 +34,8 @@ Optional apps that can be installed will be individually selectable before the p
 ### Execution instructions:
 
 In bash, run the `Debian_Config.sh` script from the project root directory which installs ansible-core and runs the playbook.
+
+### Direct From Web:
+```
+curl -sSL https://raw.githubusercontent.com/SultanSoft/Ansible_Debian_Config/refs/heads/master/bootstrap.sh | bash
+```
