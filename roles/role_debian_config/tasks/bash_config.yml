@@ -1,0 +1,56 @@
+---
+
+- name: Ensure user custom bin directory exists (for agy)
+  ansible.builtin.file:
+    path: "{{ ansible_env.HOME }}/.local/bin"
+    state: directory
+    mode: '0755'
+
+
+- name: Ensure ~/.bash_custom is sourced in ~/.bashrc
+  ansible.builtin.blockinfile:
+    path: "{{ ansible_env.HOME }}/.bashrc"
+    marker: "# {mark} ANSIBLE MANAGED BLOCK - Source Custom Bash Config"
+    create: yes
+    mode: '0644'
+    insertafter: EOF
+    block: |
+      # Import custom .bashrc file
+      . ~/.bash_custom
+
+
+- name: Create initial ~/.bash_custom configuration
+  ansible.builtin.blockinfile:
+    path: "{{ ansible_env.HOME }}/.bash_custom"
+    marker: "# {mark} ANSIBLE MANAGED BLOCK - Custom Bash Config"
+    create: yes
+    mode: '0644'
+    block: |
+      # This is a custom bash config file that runs post ~/.bashrc
+
+      # Ensure ~/.local/bin is in PATH
+      if [[ ":${PATH}:" != *":${HOME}/.local/bin:"* ]]; then
+          export PATH="${HOME}/.local/bin:${PATH}"
+      fi
+
+      # Bash config
+      HISTCONTROL=ignoreboth:erasedups
+      bind 'set completion-ignore-case on'
+
+      # Change bash prompt color (optional)
+      #PS1="\[\e]0;\u@\h: \w\a\]${debian_chroot:+($debian_chroot)}\[\033[01;31m\]\u@\h\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]\$ "
+
+      # Set custom aliases
+      alias c='clear'
+      alias cc='cd ~ ; clear'
+      alias ls='ls --color=auto --group-directories-first'
+      alias l='ls -lhvF'
+      alias ll='ls -lahvF'
+      alias h='history'
+      alias m='clear ; echo "" ; fastfetch --structure-disabled colors:locale'  ## --logo-color-2 yellow --logo-color-1 green --color-title blue --color-keys magenta
+      #alias m='clear ; echo "" ; neofetch'
+      alias up='sudo apt update && sudo apt full-upgrade -y && sudo apt autoremove -y && sudo apt clean'
+      #alias up='sudo nala full-upgrade -y ; sudo nala autoremove -y ; sudo nala clean'
+
+      # Run fetch screen at startup
+      m

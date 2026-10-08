@@ -1,0 +1,10 @@
+---
+
+- name: update_apt_cache_full_upgrade_autoremove_and_clean
+  become: true
+  no_log: true
+  ansible.builtin.apt:
+    update_cache: true
+    upgrade: full
+    autoremove: true
+    clean: true

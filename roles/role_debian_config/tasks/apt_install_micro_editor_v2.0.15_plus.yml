@@ -1,0 +1,92 @@
+---
+
+- name: Install and configure Micro editor
+  block:
+    - name: Check available Micro version in APT repositories
+      ansible.builtin.command: apt-cache policy micro
+      register: micro_apt_policy
+      changed_when: false
+      failed_when: false
+
+    - name: Extract candidate version from APT policy
+      ansible.builtin.set_fact:
+        micro_apt_version: "{{ (micro_apt_policy.stdout | regex_search('Candidate:\\s*(\\S+)', '\\1'))[0] | default('0.0.0') }}"
+      when: micro_apt_policy.rc == 0
+
+    - name: Clean extracted APT version string
+      ansible.builtin.set_fact:
+        micro_apt_version_clean: "{{ micro_apt_version | regex_search('\\b\\d+(\\.\\d+)+\\b') | default('0.0.0') }}"
+
+    - name: Install Micro and xclip via APT (Repository version >= 2.0.15)
+      become: true
+      ansible.builtin.apt:
+        name:
+          - micro
+        state: present
+        update_cache: yes
+      when: micro_apt_version_clean is version('2.0.15', '>=')
+
+    - name: Download and install Micro via shell script (Repository version < 2.0.15)
+      when: micro_apt_version_clean is version('2.0.15', '<')
+      block:
+        - name: Ensure user custom bin directory exists
+          ansible.builtin.file:
+            path: "{{ ansible_env.HOME }}/.local/bin"
+            state: directory
+            mode: '0755'
+
+        - name: Download and install Micro editor
+          ansible.builtin.shell:
+            cmd: "curl -sSfL https://getmic.ro | bash"
+            chdir: "{{ ansible_env.HOME }}/.local/bin"
+            creates: "{{ ansible_env.HOME }}/.local/bin/micro"
+
+        - name: Ensure Micro binary permissions
+          ansible.builtin.file:
+            path: "{{ ansible_env.HOME }}/.local/bin/micro"
+            mode: '0755'
+
+        - name: Copy Micro binary globally to /usr/local/bin
+          ansible.builtin.copy:
+            src: "{{ ansible_env.HOME }}/.local/bin/micro"
+            dest: "/usr/local/bin/micro"
+            mode: '0755'
+            remote_src: yes
+          failed_when: false
+
+    - name: Ensure Micro config directory exists
+      ansible.builtin.file:
+        path: "{{ ansible_env.HOME }}/.config/micro"
+        state: directory
+        mode: '0755'
+
+    - name: Configure Micro settings (keymenu)
+      ansible.builtin.copy:
+        dest: "{{ ansible_env.HOME }}/.config/micro/settings.json"
+        mode: '0644'
+        force: no
+        content: |
+          {
+              "keymenu": true,
+              "colorscheme": "dracula-tc",
+              "syntax": true,
+              "ftdetect":
+              {
+                  "bash":
+                  [
+                      "\\.bash_custom$",
+                      "\\.bash_.*$"
+                  ]
+              }
+          }
+
+    - name: Configure Micro environment in ~/.bash_custom
+      ansible.builtin.blockinfile:
+        path: "{{ ansible_env.HOME }}/.bash_custom"
+        marker: "# {mark} ANSIBLE MANAGED BLOCK - Micro Editor Config"
+        prepend_newline: true
+        insertafter: EOF
+        block: |
+          export EDITOR="micro"
+          export VISUAL="micro"
+          alias nano="micro"

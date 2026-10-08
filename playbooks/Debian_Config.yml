@@ -1,0 +1,10 @@
+---
+- name: Playbook for localhost only.
+  hosts: localhost
+
+  tasks:
+
+  - name: Include 'main.yml' tasks in 'role_debian_config' role.
+    ansible.builtin.include_role:
+      name: role_debian_config
+      tasks_from: main.yml

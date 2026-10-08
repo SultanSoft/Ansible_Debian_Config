@@ -1,0 +1,8 @@
+---
+# Ansible Inventory file example in YML style.
+
+all:
+  hosts:
+    localhost:  ## Ungrouped localhost entry.
+      ansible_connection: local  ## This forces the connection to local for host "localhost".
+      ansible_python_interpreter: "{{ansible_playbook_python}}"  ## This ignores the python interpreter warning message.

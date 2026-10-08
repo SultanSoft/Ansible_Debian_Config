@@ -1,0 +1,109 @@
+---
+
+- name: Check if Starship executable exists
+  ansible.builtin.stat:
+    path: /usr/local/bin/starship
+  register: starship_binary
+
+
+- name: Install Starship from web script block
+  when: not starship_binary.stat.exists
+  block:
+    - name: Download Starship installation script
+      ansible.builtin.get_url:
+        url: https://starship.rs/install.sh
+        dest: /tmp/starship_install.sh
+        mode: "0755"
+
+
+    - name: Run Starship installation script
+      ansible.builtin.command:
+        cmd: /tmp/starship_install.sh --yes
+        creates: /usr/local/bin/starship
+
+
+    - name: Clean up Starship installation script
+      ansible.builtin.file:
+        path: /tmp/starship_install.sh
+        state: absent
+
+
+- name: Ensure Starship init line is present in .bash_custom
+  ansible.builtin.blockinfile:
+    path: "{{ ansible_env.HOME }}/.bash_custom"
+    marker: "# {mark} ANSIBLE MANAGED BLOCK - Starship Config"
+    prepend_newline: true
+    insertafter: EOF
+    state: present
+    create: true
+    mode: "0644"
+    block: |
+      eval "$(starship init bash)"
+
+
+- name: Ensure ~/.config directory exists
+  ansible.builtin.file:
+    path: "{{ ansible_env.HOME }}/.config"
+    state: directory
+    mode: "0755"
+
+
+# - name: Generate Starship configuration preset
+#   ansible.builtin.command:
+#     cmd: starship preset no-nerd-font -o {{ ansible_env.HOME }}/.config/starship.toml
+#     creates: "{{ ansible_env.HOME }}/.config/starship.toml"
+
+
+- name: Deploy Custom Starship configuration file
+  ansible.builtin.copy:
+    dest: "{{ ansible_env.HOME }}/.config/starship.toml"
+    mode: '0644'
+    content: |
+      "$schema" = 'https://starship.rs/config-schema.json'
+
+      format="""
+      $username\
+      @\
+      $hostname\
+      $directory\
+      $git_branch\
+      $git_status\
+      $line_break\
+      $container\
+      $character"""
+
+      # Customize the Username module
+      [username]
+      style_user = "bold green"
+      style_root = "bold red"
+      format = '[$user]($style)'
+      show_always = true
+
+      # Customize the Hostname module
+      [hostname]
+      format = '[$hostname]($style) '
+      style = "yellow"
+      ssh_only = false
+
+      # Customize the Directory module
+      [directory]
+      home_symbol = "/home/ejs"
+      truncation_length = 0
+      truncate_to_repo = false
+      style = "bold cyan"
+
+      # Customize Git status & branch (Not Working)
+      #[git_branch]
+      #style = "bold magenta"
+
+      #[git_status]
+      #style = "red"
+
+      # Customize the Container module
+      [container]
+      style = "blue"
+
+      # Customize the Character prompt symbol ($ or ❯)
+      #[character]
+      #success_symbol = "[❯](bold green)"
+      #error_symbol = "[❯](bold red)"

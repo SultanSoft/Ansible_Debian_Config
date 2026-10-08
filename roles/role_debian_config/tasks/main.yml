@@ -1,0 +1,69 @@
+---
+
+- name: Split values in 'optional_app_list' input variable for some ansible tasks below
+  ansible.builtin.set_fact:
+    optional_app_list_split: "{{ optional_app_list | default('') | split }}"
+
+
+- name: Include task file role_debian_config/test.yml
+  ansible.builtin.include_tasks:
+    file: test.yml
+  when: false  ## << Uncomment to skip
+
+
+- name: Include task file role_debian_config/apt_updates.yml
+  ansible.builtin.include_tasks:
+    file: apt_updates.yml
+
+
+- name: Include task file role_debian_config/bash_config.yml
+  ansible.builtin.include_tasks:
+    file: bash_config.yml
+
+
+- name: Include task file role_debian_config/apt_install_mandatory_apps.yml
+  ansible.builtin.include_tasks:
+    file: apt_install_mandatory_apps.yml
+
+
+- name: Include task file role_debian_config/apt_install_fastfetch.yml
+  ansible.builtin.include_tasks:
+    file: apt_install_fastfetch.yml
+
+
+- name: Include task file role_debian_config/apt_install_micro_editor_v2.0.15_plus.yml
+  ansible.builtin.include_tasks:
+    file: apt_install_micro_editor_v2.0.15_plus.yml
+  #when: false  ## << Uncomment to skip
+  when: "'micro' in optional_app_list_split"
+
+
+# - name: Include task file role_debian_config/apt_install_micro_editor.yml
+#   ansible.builtin.include_tasks:
+#     file: apt_install_micro_editor.yml
+#     when: "'micro' in optional_app_list_split"
+
+
+- name: Include task file role_debian_config/web_install_starship.yml
+  ansible.builtin.include_tasks:
+    file: web_install_starship.yml
+  when: "'starship' in optional_app_list_split"
+
+
+- name: Include task file role_debian_config/apt_install_optional_apps.yml
+  ansible.builtin.include_tasks:
+    file: apt_install_optional_apps.yml
+  when: optional_app_list_split | trim | length > 0
+
+
+########################################################################
+
+
+# - name: "Include multiple task files"
+#   ansible.builtin.include_tasks:
+#     file: "{{ item }}"
+#   loop:
+#     - apt_updates.yml
+#     - bash_config.yml
+#   loop_control:
+#     label: "Including task file: {{ item }}"

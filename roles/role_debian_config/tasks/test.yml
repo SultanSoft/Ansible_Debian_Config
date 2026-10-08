@@ -1,0 +1,5 @@
+---
+
+- name: test_debug_message
+  ansible.builtin.debug:
+    msg: 'This is a test debug message. If you see this message, Ansible is working correctly.'

@@ -1,0 +1,17 @@
+---
+
+- name: Filter out Micro and Starship from optional app list
+  ansible.builtin.set_fact:
+    optional_app_list_split_no_micro: "{{ optional_app_list_split | difference(['micro', 'starship']) }}"
+
+
+# Micro is excluded from this install with the 'difference(['micro'])' filter since it is installed by a different task.
+- name: Install optional applications
+  become: true
+  no_log: true
+  ansible.builtin.apt:
+    name: "{{ optional_app_list_split_no_micro }}"
+    state: present
+    update_cache: true
+    cache_valid_time: 3600
+  when: (optional_app_list_split_no_micro | length) > 0

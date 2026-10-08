@@ -1,0 +1,54 @@
+---
+
+- name: Install and configure Micro editor
+  block:
+    - name: Download and install Micro editor
+      ansible.builtin.shell:
+        cmd: "curl -sSfL https://getmic.ro | bash"
+        chdir: "{{ ansible_env.HOME }}/.local/bin"
+        creates: "{{ ansible_env.HOME }}/.local/bin/micro"
+
+
+    - name: Ensure Micro binary permissions
+      ansible.builtin.file:
+        path: "{{ ansible_env.HOME }}/.local/bin/micro"
+        mode: '0755'
+
+
+    - name: Copy Micro binary globally to /usr/local/bin
+      ansible.builtin.copy:
+        src: "{{ ansible_env.HOME }}/.local/bin/micro"
+        dest: /usr/local/bin/micro"
+        mode: '0755'
+        remote_src: yes
+      failed_when: false
+
+
+    - name: Ensure Micro config directory exists
+      ansible.builtin.file:
+        path: "{{ ansible_env.HOME }}/.config/micro"
+        state: directory
+        mode: '0755'
+
+
+    - name: Configure Micro settings (keymenu)
+      ansible.builtin.copy:
+        dest: "{{ ansible_env.HOME }}/.config/micro/settings.json"
+        mode: '0644'
+        force: no
+        content: |
+          {
+              "keymenu": true
+          }
+
+
+    - name: Configure Micro environment in ~/.bash_custom
+      ansible.builtin.blockinfile:
+        path: "{{ ansible_env.HOME }}/.bash_custom"
+        marker: "# {mark} ANSIBLE MANAGED BLOCK - Micro Editor Configuration"
+        prepend_newline: true
+        insertafter: EOF
+        block: |
+          export EDITOR="micro"
+          export VISUAL="micro"
+          alias nano="micro"

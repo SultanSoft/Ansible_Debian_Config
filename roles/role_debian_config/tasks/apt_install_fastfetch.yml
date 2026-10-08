@@ -1,0 +1,47 @@
+---
+
+- name: Check fastfetch version if installed
+  ansible.builtin.command: fastfetch --version
+  register: fastfetch_version_check
+  changed_when: false
+  failed_when: false
+
+
+- name: Extract fastfetch version string
+  ansible.builtin.set_fact:
+    # Captures the version number (e.g., '2.69.0') from output like 'fastfetch 2.69.0 (...)'
+    fastfetch_installed_version: "{{ fastfetch_version_check.stdout | regex_search('\\b\\d+\\.\\d+\\.\\d+\\b') }}"
+  when: fastfetch_version_check.rc == 0
+
+
+- name: Install fastfetch via deb package if missing or older than 2.69.0
+  when: >
+    fastfetch_version_check.rc != 0 or
+    (fastfetch_installed_version is defined and fastfetch_installed_version is version('2.69.0', '<'))
+  block:
+    - name: Create temporary directory for fastfetch installer
+      ansible.builtin.tempfile:
+        state: directory
+        suffix: fastfetch
+      register: temp_fastfetch_dir
+
+
+    - name: Download fastfetch deb package
+      ansible.builtin.get_url:
+        url: https://github.com/fastfetch-cli/fastfetch/releases/latest/download/fastfetch-linux-amd64.deb
+        dest: "{{ temp_fastfetch_dir.path }}/fastfetch-linux-amd64.deb"
+        mode: '0644'
+
+
+    - name: Install fastfetch deb package
+      become: true
+      ansible.builtin.apt:
+        deb: "{{ temp_fastfetch_dir.path }}/fastfetch-linux-amd64.deb"
+        state: present
+
+  always:
+    - name: Clean up fastfetch temporary directory
+      ansible.builtin.file:
+        path: "{{ temp_fastfetch_dir.path }}"
+        state: absent
+      when: temp_fastfetch_dir.path is defined

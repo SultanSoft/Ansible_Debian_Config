@@ -34,5 +34,3 @@ Optional apps that can be installed will be individually selectable before the p
 ### Execution instructions:
 
 In bash, run the `Debian_Config.sh` script from the project root directory which installs ansible-core and runs the playbook.
-# Ansible_Debian_Config
-# Ansible_Debian_Config
