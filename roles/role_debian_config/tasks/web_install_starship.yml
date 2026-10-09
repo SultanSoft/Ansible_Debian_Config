@@ -87,7 +87,7 @@
 
       # Customize the Directory module
       [directory]
-      home_symbol = "/home/ejs"
+      home_symbol = "{{ ansible_env.HOME }}"
       truncation_length = 0
       truncate_to_repo = false
       style = "bold cyan"
