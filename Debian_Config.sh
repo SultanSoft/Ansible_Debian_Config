@@ -2,7 +2,7 @@
 
 sudo echo ""
 sudo echo "This script installs ansible and then runs the ansible playbook 'playbook.yml'."
-read -sp "Enter Ansible 'Become' (root) Password:" ansible_become_pass
+read -sp "Enter Ansible 'Become' (root) Password:" ansible_become_pass < /dev/tty
 
 # Validate ansible.done file.
 if ! test -f ./ansible.done ; then
