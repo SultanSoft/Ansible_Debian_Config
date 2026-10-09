@@ -96,8 +96,25 @@
       #[git_branch]
       #style = "bold magenta"
 
-      #[git_status]
-      #style = "red"
+      # Customize the Git Status module
+      [git_status]
+      # Structure: [ ⇡Ahead ⇣Behind | ⇕Diverged +Staged ~Modified -Deleted ?Untracked >Renamed !Conflicted $$$Stashed]
+      format = '([\[ $ahead_behind$diverged$staged$modified$deleted$untracked$renamed$conflicted$stashed\]]($style) )'
+
+      # Global style for the surrounding brackets
+      style = "bold white"
+
+      # Status colors matching Posh-Git defaults
+      ahead =      "[⇡${count} ](bold green)"
+      behind =     "[⇣${count} ](bold red)"
+      diverged =   "[⇕⇡${ahead_count} ](bold green)[⇣${behind_count} ](bold red)"
+      staged =     "[+${count} ](bold green)"
+      modified =   "[~${count} ](bold cyan)"
+      deleted =    "[-${count} ](bold red)"
+      untracked =  "[?${count} ](bold red)"
+      renamed =    "[>${count} ](bold yellow)"
+      conflicted = "[!${count} ](bold red)"
+      stashed =    "[$$${count} ](bold gray)"
 
       # Customize the Container module
       [container]
