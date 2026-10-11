@@ -39,3 +39,7 @@ In bash, run the `Debian_Config.sh` script from the project root directory which
 ```
 curl -sSL https://raw.githubusercontent.com/SultanSoft/Ansible_Debian_Config/refs/heads/master/bootstrap.sh | bash
 ```
+Or Shortened URL:
+```
+curl -sSL https://tinyurl.com/uwwj64zc | bash
+```

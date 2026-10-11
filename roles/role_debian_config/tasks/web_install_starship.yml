@@ -2,29 +2,37 @@
 
 - name: Check if Starship executable exists
   ansible.builtin.stat:
-    path: /usr/local/bin/starship
+    path: "{{ ansible_env.HOME }}/.local/bin/starship"
   register: starship_binary
 
 
 - name: Install Starship from web script block
   when: not starship_binary.stat.exists
   block:
-    - name: Download Starship installation script
-      ansible.builtin.get_url:
-        url: https://starship.rs/install.sh
-        dest: /tmp/starship_install.sh
-        mode: "0755"
-
-
-    - name: Run Starship installation script
-      ansible.builtin.command:
-        cmd: /tmp/starship_install.sh --yes
-        creates: /usr/local/bin/starship
-
-
-    - name: Clean up Starship installation script
+    - name: Ensure ~/.local/bin exists
       ansible.builtin.file:
-        path: /tmp/starship_install.sh
+        path: "{{ ansible_env.HOME }}/.local/bin"
+        state: directory
+        mode: '0755'
+
+
+    - name: Download Starship archive
+      ansible.builtin.get_url:
+        url: "https://github.com/starship/starship/releases/latest/download/starship-x86_64-unknown-linux-musl.tar.gz"
+        dest: "{{ ansible_env.HOME }}/.local/bin/starship.tar.gz"
+        mode: '0644'
+
+
+    - name: Unarchive Starship binary
+      ansible.builtin.unarchive:
+        src: "{{ ansible_env.HOME }}/.local/bin/starship.tar.gz"
+        dest: "{{ ansible_env.HOME }}/.local/bin"
+        remote_src: true
+
+
+    - name: Remove downloaded tarball
+      ansible.builtin.file:
+        path: "{{ ansible_env.HOME }}/.local/bin/starship.tar.gz"
         state: absent
 
 
